@@ -4,4 +4,4 @@
 
 ## Домашні завдання
 
-- [Домашнє завдання 1: AWS EC2 і Application Load Balancer](README-01.md)
+- [Домашнє завдання 1: Тема 4. Обчислювальні сервіси AWS](hw01/README.md)
