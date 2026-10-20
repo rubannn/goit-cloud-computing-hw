@@ -50,7 +50,12 @@ Endpoint: `hw03-rnn-db.c3iys8gc0j5w.sa-east-1.rds.amazonaws.com`.
 
 Відкрити **hw03-rnn-rds-sg → Inbound rules** і перевірити правило **PostgreSQL / TCP:5432 / Source: My IP**. Якщо правила немає або IP змінилася, оновити його через **Edit inbound rules**. Скриншот правила не додається, щоб не публікувати особисту IP-адресу.
 
-Запустити **Docker Desktop** у режимі Linux containers і відкрити PowerShell у папці проєкту. Завантажити сертифікат AWS RDS та запустити клієнт `psql` такими командами:
+Для підключення через `psql` указати Endpoint RDS, порт **5432**, базу **postgres** та користувача **postgres**. Використати SSL із перевіркою сертифіката сервера.
+
+<details>
+<summary>Команди підключення через Docker у PowerShell</summary>
+
+Запустити Docker Desktop у режимі Linux containers і виконати в PowerShell:
 
 ```powershell
 Invoke-WebRequest -Uri "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem" -OutFile ".\global-bundle.pem"
@@ -59,6 +64,8 @@ $RdsEndpoint = "hw03-rnn-db.c3iys8gc0j5w.sa-east-1.rds.amazonaws.com"
 
 docker run --rm -it --mount "type=bind,source=$($PWD.Path)\global-bundle.pem,target=/tmp/global-bundle.pem,readonly" postgres:18 psql "host=$RdsEndpoint port=5432 dbname=postgres user=postgres sslmode=verify-full sslrootcert=/tmp/global-bundle.pem"
 ```
+
+</details>
 
 У відповідь на **Password for user postgres** ввести пароль RDS-бази та натиснути Enter. Символи пароля не відображаються. Дочекатися повідомлення про SSL-з’єднання та запрошення `postgres=>`; залишити сеанс відкритим для SQL-команд наступних кроків.
 
