@@ -135,3 +135,30 @@ SELECT * FROM public.users usr;
 ![Таблиця users у дереві об’єктів і результат запиту у VS Code](06-2.png)
 
 На загальному вигляді VS Code видно підключення `hw03-rnn-db`, таблицю `public.users` і результат SQL-запиту. Це додатково пов’язує отриманий запис із потрібною віддаленою базою.
+
+## 7. План перевірки та ручного видалення ресурсів
+
+Наведені нижче дії виконуються через AWS Console в акаунті `512523811086`, регіон **sa-east-1 (São Paulo)**. Це інструкція очищення; сам опис не підтверджує, що ресурси вже видалено.
+
+**Перевірка перед видаленням:**
+
+1. У **RDS → Databases → hw03-rnn-db → Configuration** перевірити PostgreSQL, клас **db.t3.micro**, сховище **20 GiB, General Purpose SSD (gp2)** і користувача **postgres**.
+2. У **Connectivity & security** перевірити Endpoint, порт **5432**, **Publicly accessible: Yes** і групу **hw03-rnn-rds-sg**. У її Inbound rules має бути доступ PostgreSQL лише з поточної IP-адреси комп’ютера; особисту IP-адресу не включати до скриншотів звіту.
+3. У **Maintenance & backups** перевірити **Backup retention period: 7 days**. Не плутати цей параметр із періодом зберігання метрик у Monitoring.
+4. Переконатися, що збережено скриншоти успішного підключення через `psql`, створення таблиці, вставлення запису та результату `SELECT * FROM users;` з рядком **Іван | ivan@example.com**. Після цього завершити сеанс командою `\q` і від’єднати підключення у VS Code.
+
+**Видалення через консоль:**
+
+1. Відкрити **RDS → Databases**, вибрати **hw03-rnn-db** та виконати **Actions → Delete**. Якщо ввімкнено **Deletion protection**, спочатку вимкнути її через **Modify** і дочекатися застосування зміни.
+2. Якщо навчальні дані більше не потрібні, зняти **Create final snapshot** і **Retain automated backups**. Підтвердити попередження та ввести текст підтвердження, який показує консоль, після чого натиснути **Delete**. Без фінального snapshot не потрібно чекати його створення; відновлення даних без інших копій буде неможливим. [Документація AWS](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_DeleteInstance.html)
+3. Зберегти скриншот зі статусом **Deleting** як `07.png` для підтвердження пункту завдання. Дочекатися зникнення бази зі списку Databases; стан Deleting означає, що очищення ще триває.
+4. У **RDS → Snapshots → Manual** знайти snapshots, у яких джерелом є **hw03-rnn-db**, і видалити непотрібні через **Actions → Delete snapshot**. Видалення інстансу не видаляє ручні snapshots автоматично.
+5. У **RDS → Automated backups → Retained** перевірити залишені резервні копії **hw03-rnn-db**. Якщо вони є й більше не потрібні, вибрати їх, виконати **Actions → Delete** і підтвердити дію.
+6. У **EC2 → Security Groups** вибрати **hw03-rnn-rds-sg** (`sg-02c36169f42462cbb`) та виконати **Actions → Delete security groups**. Якщо група ще використовується мережевим інтерфейсом RDS, зачекати його автоматичного звільнення й повторити видалення.
+
+**Контроль після очищення:**
+
+- У Databases немає **hw03-rnn-db**.
+- У **Snapshots → Manual** та **Automated backups → Retained** немає непотрібних копій цієї бази. Збережені ручні snapshots і резервні копії можуть тарифікуватися після видалення інстансу. [Документація AWS](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_DeleteInstance.html)
+- У Security Groups немає **hw03-rnn-rds-sg**.
+- Default VPC, її підмережі, спільну subnet group, групу `default`, службові IAM-ролі та ключ `aws/rds` залишено для інших завдань. Локальні скриншоти й README зберігаються незалежно від ресурсів AWS.
